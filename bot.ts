@@ -1,8 +1,8 @@
 import { Bot } from "grammy";
-import * as dotenv from "dotenv";
 import express from "express";
 import { ethers } from "ethers";
 import { execute } from "./utils/sql";
+import * as dotenv from "dotenv";
 dotenv.config();
 
 const bot = new Bot(process.env.TG_BOT_TOKEN || "no token");
