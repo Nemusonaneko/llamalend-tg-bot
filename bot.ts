@@ -30,6 +30,7 @@ bot.command("register", async (ctx) => {
       await ctx.reply(`Invalid address ${address}`);
     }
   } catch (err: any) {
+    console.log(err);
     await ctx.reply(`Failed: ${err}`);
   }
 });
@@ -43,6 +44,7 @@ bot.command("remove", async (ctx) => {
     ]);
     await ctx.reply(`Removed: ${address}`);
   } catch (err: any) {
+    console.log(err);
     await ctx.reply(`Failed: ${err}`);
   }
 });
@@ -61,7 +63,10 @@ bot.command("list", async (ctx) => {
       message = "No addresses";
     }
     await ctx.reply(`${message}`);
-  } catch (err: any) {}
+  } catch (err: any) {
+    console.log(err);
+    await ctx.reply(`Failed: ${err}`);
+  }
 });
 console.log("Commands loaded!");
 
