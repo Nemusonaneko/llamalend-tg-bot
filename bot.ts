@@ -3,6 +3,8 @@ import express from "express";
 import { ethers } from "ethers";
 import { execute } from "./utils/sql";
 import * as dotenv from "dotenv";
+import { CronJob } from "cron";
+import { NotifyUsers } from "./utils/NotifyUsers";
 dotenv.config();
 
 const bot = new Bot(process.env.TG_BOT_TOKEN || "no token");
@@ -36,17 +38,45 @@ bot.command("remove", async (ctx) => {
     const id = (await ctx.getAuthor()).user.id;
     const address = ctx.match;
     await execute("DELETE FROM `telegram` WHERE ID = (?) AND ADDRESS = (?)", [
-        id,
-        address?.toLowerCase(),
-      ]);
-      await ctx.reply(`Removed: ${address}`);
+      id,
+      address?.toLowerCase(),
+    ]);
+    await ctx.reply(`Removed: ${address}`);
   } catch (err: any) {
     await ctx.reply(`Failed: ${err}`);
   }
 });
-console.log("Commands loaded!")
+bot.command("list", async (ctx) => {
+  try {
+    const id = (await ctx.getAuthor()).user.id;
+    const addresses = await execute(
+      `SELECT ADDRESS FROM discord WHERE ID =?;`,
+      [id]
+    );
+    let message = ``;
+    (addresses[0] as any[]).map((address) => {
+      message += `${address.ADDRESS}\n`;
+    });
+    if (message.length === 0) {
+      message = "No addresses";
+    }
+    await ctx.reply(`${message}`);
+  } catch (err: any) {}
+});
+console.log("Commands loaded!");
 
-console.log("Starting bot...")
+console.log("Loading cron jobs");
+const hourlyJob = new CronJob("0 * * * *", async function () {
+  await NotifyUsers(bot, true);
+});
+const dailyJob = new CronJob("0 0 * * *", async function () {
+  await NotifyUsers(bot, false);
+});
+hourlyJob.start();
+dailyJob.start();
+console.log("Cron jobs added!");
+
+console.log("Starting bot...");
 bot.start();
 app.listen(process.env.PORT, () =>
   console.log(`Server started on port ${process.env.PORT}!`)
