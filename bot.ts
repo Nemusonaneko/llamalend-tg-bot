@@ -50,7 +50,7 @@ bot.command("list", async (ctx) => {
   try {
     const id = (await ctx.getAuthor()).user.id;
     const addresses = await execute(
-      `SELECT ADDRESS FROM discord WHERE ID =?;`,
+      `SELECT ADDRESS FROM telegram WHERE ID =?;`,
       [id]
     );
     let message = ``;
