@@ -4,3 +4,4 @@ bot.js
 
 utils/sql.js
 utils/NotifyUsers.js
+utils/GetLoans.js

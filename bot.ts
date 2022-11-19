@@ -5,6 +5,7 @@ import { execute } from "./utils/sql";
 import * as dotenv from "dotenv";
 import { CronJob } from "cron";
 import { NotifyUsers } from "./utils/NotifyUsers";
+import { getLoans } from "./utils/GetLoans";
 dotenv.config();
 
 const bot = new Bot(process.env.TG_BOT_TOKEN || "no token");
@@ -62,6 +63,37 @@ bot.command("list", async (ctx) => {
     if (message.length === 0) {
       message = "No addresses";
     }
+    await ctx.reply(`${message}`);
+  } catch (err: any) {
+    console.log(err);
+    await ctx.reply(`Failed: ${err}`);
+  }
+});
+bot.command("loans", async (ctx) => {
+  try {
+    const id = (await ctx.getAuthor()).user.id;
+    const now = Math.round(Date.now() / 1e3);
+    const addressQuery = await execute(
+      `SELECT ADDRESS FROM discord WHERE ID =?;`,
+      [id]
+    );
+    const addresses: string[] = [];
+    (addressQuery[0] as any[]).map((address) => {
+      addresses.push(address.ADDRESS);
+    });
+    let message = "";
+    for (let i = 0; i < addresses.length; i++) {
+      const loans = await getLoans(addresses[i]);
+      for (let j = 0; j < loans.length; j++) {
+        const loan = loans[i];
+        message += `${loan.pool.name} loan for NFT ID ${
+          loan.nftId
+        } will expire in ${((Number(loan.deadline) - now) / 86400).toFixed(
+          2
+        )} days\n`;
+      }
+    }
+    message += "Go to https://llamalend.com/repay to repay your loans.";
     await ctx.reply(`${message}`);
   } catch (err: any) {
     console.log(err);
